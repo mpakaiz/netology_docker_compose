@@ -1,0 +1,33 @@
+version: "3.9"
+
+volumes:
+  pgdata:
+
+services:
+  postgresql:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_DB: stocks
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pos0295485!
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  web:
+    build: ./app
+    command: gunicorn stocks_products.wsgi:application -b 0.0.0.0:8000
+    volumes:
+      - ./app/static/:/app/static/
+    env_file:
+      - ./app/.env
+    depends_on:
+      - postgresql
+  
+  nginx:
+    build: ./nginx
+    volumes:
+      - ./app/static/:/app/static/:ro
+    ports:
+      - 8000:80
+    depends_on:
+      - web
